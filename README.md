@@ -1,5 +1,5 @@
 # paleocirc
-API web scraping per ottenere circolari dal sito dell'I.T.i.S. Paleocapa diì Bergamo
+API web scraping per ottenere circolari dal sito dell'I.T.I.S. Paleocapa di Bergamo
 
 ## Installazione
 Per installare questa libreria è necessario eseguire ```pip install paleocirc``` in un terminale.
