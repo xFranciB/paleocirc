@@ -50,7 +50,7 @@ while True:
     for circolare in circolareList:                   #esegui operazione su
       # esegui operazioni                             #ogni circolare
     
-    file.write([c.number for c in circolareList][0])  #salva l'ultima circolare in latest.txt
+    file.write(circolareList[0].number)               #salva l'ultima circolare in latest.txt
     time.sleep(1800)                                  #ripeti l'operazione dopo 30 minuti 
 ```
 
