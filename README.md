@@ -27,7 +27,7 @@ circolare = circolari.get(numero_circolare)
 circolare.number      #stringa: numero circolare (ad esempio 21, 250 bis)
 circolare.name        #stringa: nome della circolare
 circolare.date        #stringa: data in cui la circolare è uscita
-circolare.url         #stringa: URL che porta alla pagina della circolare (non al pdf)
+circolare.url         #stringa: URL che porta alla pagina della circolare (non agli allegati)
 circolare.restricted  #bool: True se la circolare è solo per i membri dello staff, altrimenti False
 
 ```
