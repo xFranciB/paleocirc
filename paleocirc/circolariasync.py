@@ -216,7 +216,6 @@ class Circolari:
             return tmpFilesList
 
         async def download(self, path=None, pngConvert=False, docConvert=False, keepDoc=False, poppler=None):
-            dirpath = path + '/' + self.number + '/'
             fileList = {}
                 
             if self.__archive__ is not None:
@@ -256,6 +255,8 @@ class Circolari:
 
                     else:
                         return self.__archive__[self.number]['attachments']
+
+            dirpath = path + '/' + self.number + '/'
 
             async with self.__session__.get(self.url) as response:
                 dPage = await response.text()

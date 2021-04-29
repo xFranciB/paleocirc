@@ -206,7 +206,6 @@ class Circolari:
             return tmpFilesList
 
         def download(self, path=None, pngConvert=False, docConvert=False, keepDoc=False, poppler=None):
-            dirpath = path + '/' + self.number + '/'
             fileList = {}
                 
             if self.__archive__ is not None:
@@ -247,6 +246,7 @@ class Circolari:
                     else:
                         return self.__archive__[self.number]['attachments']
 
+            dirpath = path + '/' + self.number + '/'
             dPage = requests.get(self.url).text
             soup = bs4.BeautifulSoup(dPage, 'html.parser')
             
@@ -354,3 +354,9 @@ class Circolari:
 
             if self.__archive__ is not None:
                 self.__saveArchive__()
+
+if __name__ == '__main__':
+    circolari = Circolari(archiveDir="downloads")
+    circolare = circolari.get(401)
+    print(json.dumps(circolare.download(pngConvert=True, docConvert=True, keepDoc=False), indent=2))
+    circolare.delete()
