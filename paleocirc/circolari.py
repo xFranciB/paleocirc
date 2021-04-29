@@ -2,7 +2,12 @@ import requests
 import bs4
 import pdf2image
 import os
+import glob
 import json
+import platform
+
+if platform.system() == 'Windows':
+    import win32com.client #pywin32
 
 class Circolari:
 
@@ -52,7 +57,7 @@ class Circolari:
             for circolare in tags:
                 aTag = circolare.find_all('a')[1]
                 cURL = aTag['href']
-                cNo = [value for value in [i for o in [value.replace('/', '').split(' ') for value in aTag.text.lower().replace('bis', '').split('.')] for i in o] if value.isnumeric()][0]
+                cNo = [value for value in [i for o in [value.replace('/', '').split(' ') for value in aTag.text.lower().replace('bis', '').replace('ter', '').replace('-', '').split('.')] for i in o] if value.isnumeric()][0]
                 
                 while True:
                     if cNo.startswith('0'):
@@ -63,7 +68,10 @@ class Circolari:
 
                 if 'bis' in aTag.text.lower():
                     cNo = cNo + ' bis'
-                
+
+                elif 'ter' in aTag.text.lower():
+                    cNo = cNo + ' ter'
+
                 cDate = circolare.find_all(class_='hdate')[0].text
                 dMAE = circolare.find(class_='members-access-error')
                 
@@ -183,9 +191,23 @@ class Circolari:
             with open(self.__archiveDir__ + '/archive.json', 'w') as file:
                 file.write(json.dumps(self.__archive__, indent=4, sort_keys=True))
 
-        def download(self, path=None, pngConvert=False, poppler=None):
+        def __convertToPng__(self, infile, outfile, poppler=None):
+            tmpFilesList = []
+            
+            if poppler:
+                pages = pdf2image.convert_from_path(infile, poppler_path=poppler)
+
+            pages = pdf2image.convert_from_path(infile)
+
+            for page in range(len(pages)):
+                pages[page].save(outfile + '-' + str(page+1) + '.png', 'PNG')
+                tmpFilesList.append(outfile + '-' + str(page+1) + '.png')
+
+            return tmpFilesList
+
+        def download(self, path=None, pngConvert=False, docConvert=False, keepDoc=False, poppler=None):
+            dirpath = path + '/' + self.number + '/'
             fileList = {}
-            pdfExists = False
                 
             if self.__archive__ is not None:
                 path = self.__archive__['dir'] 
@@ -198,21 +220,26 @@ class Circolari:
                     pass
 
                 try:
-                    if not os.path.exists(self.__archive__[self.number]['attachments']['1']['pdf']):
-                        raise 'error'
+                    for num, filename in enumerate(self.__archive__[self.number]['attachments']):
+                        tmpFilename = self.__archive__[self.number]['attachments'][filename]['filename']
+                        tmpExtension = tmpFilename.split('.')[-1]
+
+                        if not os.path.exists(filename) or (tmpExtension == 'pdf' and pngConvert) or (tmpExtension in ['doc', 'docx'] and docConvert):
+                            raise 'error'
 
                 except:
                     pass
 
                 else:
-                    if not pngConvert:
+                    if not pngConvert and not docConvert:
                         return self.__archive__[self.number]['attachments']
-                    
-                    pdfExists = True
 
                     try:
-                        if not os.path.exists(self.__archive__[self.number]['attachments']['1']['files'][0]):
-                            raise 'error'
+                        for num, attach in enumerate(self.__archive__[self.number]['attachments']):
+                            for attachNum, attachFile in enumerate(attach):
+
+                                if not os.path.exists(self.__archive__[self.number]['attachments'][attach]):
+                                    raise 'error'
 
                     except:
                         pass
@@ -224,40 +251,46 @@ class Circolari:
             soup = bs4.BeautifulSoup(dPage, 'html.parser')
             
             for num, value in enumerate(soup.find_all(class_='post-attachment')):
-
                 tmpFilesArray = {}
-                dirpath = path + '/' + self.number + '/'
 
-                if not pdfExists:
-                    pdfFile = requests.get(value.find('a')['href']).content
+                if not glob.glob(dirpath + self.number + '-' + str(num+1) + '.*') or self.__archive__ is None:
+                    pdfPage = requests.get(value.find('a')['href'])
+                    pdfFile = pdfPage.content
+                    cExtension = pdfPage.url.split('.')[-1]
                     
                     if not os.path.isdir(path + '/' + self.number):
                         os.mkdir(path + '/' + self.number)
 
-                    file = open(dirpath + self.number + '-' + str(num+1) + '.pdf', 'wb')
+                    file = open(dirpath + self.number + '-' + str(num+1) + '.' + cExtension, 'wb')
                     file.write(pdfFile)
                     file.close()
                     tmpFilesArray['name'] = value.find('a').text
-                    tmpFilesArray['pdf'] = dirpath + self.number + '-' + str(num+1) + '.pdf'
+                    tmpFilesArray['filename'] = dirpath + self.number + '-' + str(num+1) + '.' + cExtension
 
                 else:
                     tmpFilesArray['name'] = self.__archive__[self.number]['attachments'][str(num+1)]['name']
-                    tmpFilesArray['pdf'] = self.__archive__[self.number]['attachments'][str(num+1)]['pdf']
+                    tmpFilesArray['filename'] = self.__archive__[self.number]['attachments'][str(num+1)]['filename']
+                    cExtension = tmpFilesArray['filename'].split('.')[-1]
 
-                if pngConvert:
-                    tmpFilesList = []
-
-                    if poppler:
-                        pages = pdf2image.convert_from_path(dirpath + self.number + '-' + str(num+1) + '.pdf', poppler_path=poppler)
-
-                    pages = pdf2image.convert_from_path(dirpath + self.number + '-' + str(num+1) + '.pdf')
-
-                    for page in range(len(pages)):
-                        pages[page].save(dirpath + str(num+1) + '-' + str(page+1) + '.png', 'PNG')
-                        tmpFilesList.append(dirpath + str(num+1) + '-' + str(page+1) + '.png')
-
-                    tmpFilesArray['files'] = tmpFilesList
+                if pngConvert and cExtension == 'pdf' and not glob.glob(dirpath + str(num+1) + '-*.png'):
+                    tmpFilesArray['files'] = self.__convertToPng__(tmpFilesArray['filename'], dirpath + str(num+1), poppler=poppler)
                 
+                elif docConvert and cExtension in ['doc', 'docx'] and not os.path.exists(dirpath + self.number + '-' + str(num+1) + '.pdf'):
+                    word = win32com.client.Dispatch('Word.Application')
+                    word.visible = 0
+                    wb = word.Documents.Open(os.path.abspath(tmpFilesArray['filename']))
+                    wb.SaveAs2(os.path.abspath(tmpFilesArray['filename'].replace('.' + cExtension, '') + '.pdf'), FileFormat=17)
+                    wb.Close()
+                    word.Quit()
+
+                    if not keepDoc:
+                        os.remove(tmpFilesArray['filename'])
+
+                    tmpFilesArray['filename'] = tmpFilesArray['filename'].replace('.' + cExtension, '') + '.pdf' 
+
+                    if pngConvert and not glob.glob(dirpath + str(num+1) + '-*.png'):                   
+                        tmpFilesArray['files'] = self.__convertToPng__(tmpFilesArray['filename'], dirpath + str(num+1) , poppler=poppler)
+
                 fileList[str(num+1)] = tmpFilesArray
             
             if fileList == {}:
@@ -284,35 +317,37 @@ class Circolari:
             return fileList
 
         def delete(self, archive=True, files=True):
-            filesExist = True
 
-            if self.__archive__ is not None and self.__downloadInfo__ is None:
+            if files:
+
                 try:
-                    self.__downloadInfo__ = self.__archive__[self.number]['attachments']
+                    if self.__downloadInfo__ is None:
+                        self.__downloadInfo__ = self.__archive__[self.number]['attachments']
 
                 except:
-                    filesExist = False
+                    pass
 
-            if self.__downloadInfo__ is not None and filesExist:
-                dirpath = os.path.dirname(self.__downloadInfo__['1']['pdf'])
+                if self.__downloadInfo__ is not None:
 
-                for value in self.__downloadInfo__:
-                    
-                    if files and self.__downloadInfo__ is not None:
-                        pdfPath = self.__downloadInfo__[value]['pdf']
-                        
-                        if os.path.exists(pdfPath):
-                            os.remove(pdfPath)
-                        
-                        for image in self.__downloadInfo__[value]['files']:
-                            if os.path.exists(image):
-                                os.remove(image)
+                    dirpath = os.path.dirname(self.__downloadInfo__['1']['filename'])
 
-                if len(os.listdir(dirpath)) == 0:
-                    os.rmdir(dirpath)
+                    if os.path.exists(dirpath):
+                            
+                        for file in glob.glob(dirpath + '/*'):
+                            os.remove(file)
+                                
+                        os.rmdir(dirpath)
 
-                if self.__archive__ is not None:
+                        if self.__archive__ is not None:
+                            del self.__archive__[self.number]['attachments']
+
+                self.__downloadInfo__ = None
+                
+                try:
                     del self.__archive__[self.number]['attachments']
+
+                except:
+                    pass
 
             if archive and self.__archive__ is not None:
                 del self.__archive__[self.number]
