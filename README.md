@@ -99,7 +99,7 @@ downloads = circolare.download(
   }
 }
 ```
-Nota: per convertire gli allegati in PDF è necessario avere poppler installato (https://github.com/oschwartz10612/poppler-windows/releases/) che deve essere presente in PATH. Se per qualche motivo Python non dovesse rilevare poppler in PATH, allora si può specificare il suo percorso quando si scarica una circolare, passando il percorso del file usando "poppler=path/to/poppler/bin".
+Nota: per convertire gli allegati in PDF è necessario avere poppler installato (https://github.com/oschwartz10612/poppler-windows/releases/) che deve essere presente in PATH. Se per qualche motivo Python non dovesse rilevare poppler in PATH, allora si può specificare il suo percorso quando si scarica una circolare, passando il percorso del file usando "poppler=path/to/poppler/bin".<br>
 Inoltre, per convertire gli allegati in DOC e DOCX è **necessario** avere Microsoft Word installato su un sistema operativo Windows.
 
 ### Archivio di circolari
