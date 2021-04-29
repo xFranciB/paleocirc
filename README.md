@@ -69,10 +69,10 @@ downloads = circolare.download(
   pngConvert=False,       #bool: opzionale, se impostata su True converte i PDF in PNG
   
   docConvert=False        #bool: opzionale, se impostata du True converte
-                          i DOC e i DOCX in PNG
+                          #i DOC e i DOCX in PNG
   
   keepDoc=False           #bool: opzionale, se impostata su True mantiene i file
-                          DOC e DOCX dopo la conversione in PDF
+                          #DOC e DOCX dopo la conversione in PDF
   
   poppler=None            #stringa: opzionale, percorso di poppler per la
                           #conversione in png, se poppler non è presente in PATH
@@ -99,7 +99,8 @@ downloads = circolare.download(
   }
 }
 ```
-Nota: per convertire le circolari è necessario avere poppler installato (https://github.com/oschwartz10612/poppler-windows/releases/) che deve essere presente in PATH. Se per qualche motivo Python non dovesse rilevare poppler in PATH, allora si può specificare il suo percorso quando si scarica una circolare, passando il percorso del file usando "poppler=path/to/poppler/bin".
+Nota: per convertire gli allegati in PDF è necessario avere poppler installato (https://github.com/oschwartz10612/poppler-windows/releases/) che deve essere presente in PATH. Se per qualche motivo Python non dovesse rilevare poppler in PATH, allora si può specificare il suo percorso quando si scarica una circolare, passando il percorso del file usando "poppler=path/to/poppler/bin".
+Inoltre, per convertire gli allegati in DOC e DOCX è **necessario** avere Microsoft Word installato su un sistema operativo Windows.
 
 ### Archivio di circolari
 Per evitare di scaricare una circolare ogni volta, si può anche utilizzare un archivio.
