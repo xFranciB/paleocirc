@@ -354,9 +354,3 @@ class Circolari:
 
             if self.__archive__ is not None:
                 self.__saveArchive__()
-
-if __name__ == '__main__':
-    circolari = Circolari(archiveDir="downloads")
-    circolare = circolari.get(401)
-    print(json.dumps(circolare.download(pngConvert=True, docConvert=True, keepDoc=False), indent=2))
-    circolare.delete()
