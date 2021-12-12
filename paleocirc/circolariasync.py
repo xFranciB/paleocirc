@@ -203,11 +203,12 @@ class Circolari:
 
         def __convertToPng__(self, infile, outfile, poppler=None):
             tmpFilesList = []
-            
+
             if poppler:
                 pages = pdf2image.convert_from_path(infile, poppler_path=poppler)
 
-            pages = pdf2image.convert_from_path(infile)
+            else:
+                pages = pdf2image.convert_from_path(infile)
 
             for page in range(len(pages)):
                 pages[page].save(outfile + '-' + str(page+1) + '.png', 'PNG')
@@ -219,7 +220,8 @@ class Circolari:
             fileList = {}
                 
             if self.__archive__ is not None:
-                path = self.__archive__['dir'] 
+                path = self.__archive__['dir']
+                dirpath = path + '/' + self.number + '/'
 
                 try:
                     if self.__archive__[self.number]['attachments'] is None:
@@ -233,7 +235,7 @@ class Circolari:
                         tmpFilename = self.__archive__[self.number]['attachments'][filename]['filename']
                         tmpExtension = tmpFilename.split('.')[-1]
 
-                        if not os.path.exists(filename) or (tmpExtension == 'pdf' and pngConvert) or (tmpExtension in ['doc', 'docx'] and docConvert):
+                        if not os.path.exists(self.__archive__[self.number]['attachments'][filename]['filename']) or (tmpExtension == 'pdf' and pngConvert and not glob.glob(dirpath + tmpFilename.split('-')[1].split('.')[0] + '-*.png')) or (tmpExtension in ['doc', 'docx'] and docConvert and not glob.glob(dirpath + self.number + '-*.pdf')):
                             raise 'error'
 
                 except:
@@ -244,11 +246,8 @@ class Circolari:
                         return self.__archive__[self.number]['attachments']
 
                     try:
-                        for num, attach in enumerate(self.__archive__[self.number]['attachments']):
-                            for attachNum, attachFile in enumerate(attach):
-
-                                if not os.path.exists(self.__archive__[self.number]['attachments'][attach]):
-                                    raise 'error'
+                        if any(not os.path.exists(i) for o in [self.__archive__[self.number]['attachments'][f]['files'] for f in self.__archive__[self.number]['attachments'] if f['filename'].split('.')[-1] == 'pdf'] for i in o):
+                            raise 'error'
 
                     except:
                         pass
@@ -262,6 +261,11 @@ class Circolari:
                 dPage = await response.text()
 
             soup = bs4.BeautifulSoup(dPage, 'html.parser')
+            word = None
+
+            if docConvert:
+                word = win32com.client.Dispatch('Word.Application')
+                word.visible = 0
             
             for num, value in enumerate(soup.find_all(class_='post-attachment')):
                 tmpFilesArray = {}
@@ -284,17 +288,18 @@ class Circolari:
                     tmpFilesArray['name'] = self.__archive__[self.number]['attachments'][str(num+1)]['name']
                     tmpFilesArray['filename'] = self.__archive__[self.number]['attachments'][str(num+1)]['filename']
                     cExtension = tmpFilesArray['filename'].split('.')[-1]
+                    tmpFilesArray['files'] = glob.glob(dirpath + str(num+1) + '-*.png')
+
+                    if not tmpFilesArray['files']:
+                        del tmpFilesArray['files']
 
                 if pngConvert and cExtension == 'pdf' and not glob.glob(dirpath + str(num+1) + '-*.png'):
                     tmpFilesArray['files'] = self.__convertToPng__(tmpFilesArray['filename'], dirpath + str(num+1), poppler=poppler)
                 
                 elif docConvert and cExtension in ['doc', 'docx'] and not os.path.exists(dirpath + self.number + '-' + str(num+1) + '.pdf'):
-                    word = win32com.client.Dispatch('Word.Application')
-                    word.visible = 0
                     wb = word.Documents.Open(os.path.abspath(tmpFilesArray['filename']))
                     wb.SaveAs2(os.path.abspath(tmpFilesArray['filename'].replace('.' + cExtension, '') + '.pdf'), FileFormat=17)
                     wb.Close()
-                    word.Quit()
 
                     if not keepDoc:
                         os.remove(tmpFilesArray['filename'])
@@ -306,7 +311,10 @@ class Circolari:
 
                 fileList[str(num+1)] = tmpFilesArray
             
-            if fileList == {}:
+            if word is not None:
+                word.Quit()
+
+            if not fileList:
                 fileList = None
 
             if self.__archive__ is not None:
@@ -321,7 +329,7 @@ class Circolari:
                         'restricted': self.restricted
                     }
 
-                if not 'attachments' in self.__archive__[self.number] or (not 'files' in self.__archive__[self.number]['attachments'] and pngConvert):
+                if not 'attachments' in self.__archive__[self.number] or (not 'files' in self.__archive__[self.number]['attachments'] and pngConvert) or docConvert:
                     self.__archive__[self.number]['attachments'] = fileList
 
                 self.__saveArchive__()
