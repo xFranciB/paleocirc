@@ -68,7 +68,7 @@ downloads = circolare.download(
   
   pngConvert=False,       #bool: opzionale, se impostata su True converte i PDF in PNG
   
-  docConvert=False        #bool: opzionale, se impostata du True converte
+  docConvert=False        #bool: opzionale, se impostata su True converte
                           #i DOC e i DOCX in PNG
   
   keepDoc=False           #bool: opzionale, se impostata su True mantiene i file
