@@ -259,6 +259,11 @@ class Circolari:
 
                 if not glob.glob(dirpath + self.number + '-' + str(num+1) + '.*') or self.__archive__ is None:
                     pdfPage = requests.get(value.find('a')['href'])
+                    try:
+                        pdfPage.raise_for_status()
+                    except requests.exceptions.HTTPError as e:
+                        continue
+
                     pdfFile = pdfPage.content
                     cExtension = pdfPage.url.split('.')[-1]
                     
