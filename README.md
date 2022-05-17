@@ -14,7 +14,7 @@ from paleocirc.circolari import Circolari
 circolari = Circolari()
 circolare = circolari.getPages(numero_pagine)
 ```
-Nota: getPages(n) ritorna le prime <i>n</i> pagine di circolari (ciò significa che passando 2, ritornerà le prime due pagine). Per ottenere __solo__ la seconda pagina, bisogna passare "_range=False" nella funzione: `getPages(2, _range=False)`
+Nota: getPages(n) ritorna le prime <i>n</i> pagine di circolari (ciò significa che passando 2, ritornerà le prime due pagine). Per ottenere __solo__ la seconda pagina, bisogna passare "_range=False" nel metodo: `getPages(2, _range=False)`
 
 ### Ricavare informazioni di una circolare
 Puoi ottenere le informazioni di una circolare utlizzando<br>
@@ -42,8 +42,8 @@ import time
 circolari = Circolari()
 
 while True:
-  with open('latest.txt', 'w') as file:               #apri file latest.txt, dove viene salvato
-                                                      #il numero dell'ultima circolare
+  with open('latest.txt', 'w') as file:               #apri il file latest.txt, dove viene
+                                                      #salvato il numero dell'ultima circolare
                                                       
     circolareList = circolari.getFrom(file.read())    #ottieni ogni circolare uscita dopo n
     
@@ -68,14 +68,14 @@ downloads = circolare.download(
   
   pngConvert=False,       #bool: opzionale, se impostata su True converte i PDF in PNG
   
-  docConvert=False        #bool: opzionale, se impostata su True converte
-                          #i DOC e i DOCX in PNG
+  docConvert=False,       #bool: opzionale, se impostata su True converte
+                          #i DOC e i DOCX in PNG (SOLO SU WINDOWS)
   
-  keepDoc=False           #bool: opzionale, se impostata su True mantiene i file
+  keepDoc=False,          #bool: opzionale, se impostata su True mantiene i file
                           #DOC e DOCX dopo la conversione in PDF
   
   poppler=None            #stringa: opzionale, percorso di poppler per la
-                          #conversione in png, se poppler non è presente in PATH
+                          #conversione in PNG, se poppler non è presente in PATH
 )
 
 >>> downloads
@@ -119,7 +119,7 @@ circolare.download() #La circolare viene automaticamente scaricata nell'archivio
 Nota: è altamente consigliato utilizzare un archivio di circolari quando possibile.
 
 ### Eliminare una circolare
-È possibile eliminare tutti i file di una circolare e, se è un archivio è stato caricato, anche le informazioni da esso.
+È possibile eliminare tutti i file di una circolare e, se un archivio è stato caricato, anche le informazioni da esso.
 ```python
 from paleocirc.circolari import Circolari
 
@@ -137,15 +137,15 @@ circolare.delete(
 ```
 
 ## Async
-Oltre alla versione sync, questa libreria presenta anche una scritta in async. È consigliato utilizzare questa quando possibile, perché non ferma tutto il codice quando viene fatta una richiesta al sito. Le funzioni sono le stesse, ma funzionano in modo un po' diverso.
-Per chiamare la libreria asincrona è necessario usare
+Oltre alla versione sync, questa libreria presenta anche una scritta in async. È consigliato utilizzare questa quando possibile, perché non ferma tutto il codice quando viene fatta una richiesta al sito. I metodi sono gli stessi, ma funzionano in modo un po' diverso.
+Per importare la versione asincrona è necessario usare
 ```python
 from paleocirc.circolariasync import Circolari
 ```
 
 ### Ottenere circolari in modo asincrono
-Per utilizzare la versione asincrona bisogna chiamare le funzioni usando l'espressione "await" all'interno di una funzione asincrona.
-Le funzioni che richiedono l'await sono quelle che fanno richieste al sito, cioè:
+Per utilizzare la versione asincrona bisogna chiamare i metodo usando "await" all'interno di una funzione asincrona.
+I metodi che richiedono l'await sono quelli che fanno richieste al sito, cioè:
 ```python
 await circolari.getPages()
 await circolari.get()
@@ -153,7 +153,7 @@ await circolari.getFrom()
 await circolare.download()
 ```
 
-Per chiamare `Circolari()` è necessario utilizzare un'espressione `async with`:
+Per chiamare `Circolari()` è necessario utilizzare `async with`:
 ```python
 from paleocirc.circolariasync import Circolari
 import asyncio
@@ -167,7 +167,7 @@ async def main():
   circolare.delete()
     
     
-# codice necessario per eseguire il codice in modo asincrono
+# Codice necessario per eseguire la funzione in modo asincrono
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
 loop.close()
