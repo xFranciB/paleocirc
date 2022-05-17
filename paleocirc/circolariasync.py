@@ -272,6 +272,10 @@ class Circolari:
 
                 if not glob.glob(dirpath + self.number + '-' + str(num+1) + '.*') or self.__archive__ is None:
                     async with self.__session__.get(value.find('a')['href']) as response:
+                        try:
+                            response.raise_for_status()
+                        except aiohttp.ClientResponseError as e:
+                            continue
                         pdfFile = await response.content.read()
                         cExtension = str(response.url).split('.')[-1]
                     
